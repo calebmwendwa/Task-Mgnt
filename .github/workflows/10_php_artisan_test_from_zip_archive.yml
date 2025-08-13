@@ -1,0 +1,51 @@
+name: 10_php_artisan_test_from_zip_archive
+#on: [ push, pull_request ]
+on:
+  workflow_dispatch:
+    inputs:
+      zip_artifact_id:
+        description: 'Zip Artifact ID'
+        required: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Download and unzip the build artifact
+        # https://github.com/rcravens/laravel_demo/actions/runs/8728222070/artifacts/1423549891
+        run: |
+          echo "${{ github.event.inputs.zip_artifact_id }}"
+          curl -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -L -o archive.zip "https://api.github.com/repos/rcravens/laravel_demo/actions/artifacts/${{ github.event.inputs.zip_artifact_id }}/zip"
+          ls -la
+          unzip archive.zip
+          ls -la
+          rm -rf archive.zip
+          unzip -q build*.zip
+          ls -la
+          rm -rf build*.zip
+
+      # https://github.com/shivammathur/setup-php
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.ci .env
+          php artisan key:generate
+          php artisan migrate
+
+      - name: Run Test suite
+        run: php artisan test
