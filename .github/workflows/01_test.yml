@@ -17,8 +17,8 @@ jobs:
         run: |
           ls -la /
           ls -la /home/runner/work
-          ls -la /home/runner/work/laravel_demo
-          ls -la /home/runner/work/laravel_demo/laravel_demo
+          ls -la /home/runner/work/Task-Mgnt
+          ls -la /home/runner/work/Task-Mgnt/Task-Mgnt
           echo ${{ github.action }}
           echo ${{ github.action_path }}
           echo ${{ github.action_ref }}
